@@ -2,7 +2,8 @@
 
 Три эксперимента с аугментациями (таблица **№2**, **№6**, **№7**), MLP ≤ 1M параметров, MLflow, чекпоинты и отчёт.
 
-**Подробная инструкция:** [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) (установка, GPU-ноутбук, Git, Colab, отчёт, troubleshooting).
+**Подробная инструкция:** [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) (установка, GPU-ноутбук, Git, отчёт, troubleshooting).  
+**Colab по шагам:** [docs/COLAB_SETUP.md](docs/COLAB_SETUP.md).
 
 ## Окружение
 

@@ -48,7 +48,7 @@ cifar-10/
   train/train/*.png    # или train/*.png
 ```
 
-Распакуйте `train.7z` из Kaggle. Папка `cifar-10/test/` **без меток** для оценки accuracy **не используется**.
+Распакуйте `train.7z` из Kaggle. Папка `cifar-10/test/` **без меток** для лабы **не используется** — в Colab/Drive её заливать не нужно (очень большой объём).
 
 ### Test (с метками)
 
@@ -60,6 +60,16 @@ cifar-10/
 $env:CIFAR10_DATA_ROOT = "D:\datasets\cifar-10"
 uv run python scripts/train.py --config configs/aug_variant_2.yaml --download-test
 ```
+
+### Режим `torchvision` (без Kaggle на диске)
+
+Train и test берутся из официального CIFAR-10 (~170 MB, один раз скачивается в `data/torchvision_cifar10/`). Split train/val: 45k/5k, `seed=42`, как у Kaggle.
+
+```powershell
+uv run python scripts/train.py --config configs/aug_variant_2.yaml --data-source torchvision --download-test
+```
+
+Удобно для **Colab**, когда не хотите заливать датасет на Drive. На основном ПК с Kaggle-папкой обычно оставляют `data_source: kaggle` в `configs/base.yaml`.
 
 ---
 
@@ -218,14 +228,9 @@ Compress-Archive -Path checkpoints, artifacts -DestinationPath $env:USERPROFILE\
 
 ## 10. Google Colab
 
-Альтернатива ноутбуку с GPU:
+Пошаговая настройка: **[COLAB_SETUP.md](COLAB_SETUP.md)** (чеклист, все ячейки, скачивание результатов на ПК).
 
-1. `.\scripts\pack_for_colab.ps1` → загрузить `CV-lab3-project.zip` на Drive.
-2. Папку `cifar-10` — в `My Drive/CV-lab3/cifar-10`.
-3. Открыть `notebooks/colab_lab3.ipynb`, runtime **GPU**, выполнить ячейки.
-4. Скачать zip с Drive, распаковать `checkpoints/` на ПК, собрать отчёт.
-
-Подробности в ячейках ноутбука.
+Кратко: `USE_TORCHVISION_DATA = True` в ноутбуке — датасет в Colab, на Drive только zip с кодом; test с метками через `torchvision`, Kaggle `cifar-10/test/` не нужен.
 
 ---
 

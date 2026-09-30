@@ -71,6 +71,38 @@ class KaggleCifarTrainDataset(Dataset):
         return tensor, self.targets[index]
 
 
+class TorchvisionCifarTrainSubset(Dataset):
+    """Подмножество официального CIFAR-10 train (50k) с тем же split, что и Kaggle train/val."""
+
+    def __init__(
+        self,
+        root: str | Path,
+        indices: list[int] | np.ndarray,
+        transform: Callable[[np.ndarray], torch.Tensor],
+        augment: Callable[[np.ndarray], np.ndarray] | None = None,
+        download: bool = True,
+    ) -> None:
+        self._inner = tv_datasets.CIFAR10(
+            root=str(root),
+            train=True,
+            download=download,
+        )
+        self.indices = [int(i) for i in indices]
+        self.transform = transform
+        self.augment = augment
+
+    def __len__(self) -> int:
+        return len(self.indices)
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, int]:
+        idx = self.indices[index]
+        image, target = self._inner[idx]
+        image_np = np.array(image)
+        if self.augment is not None:
+            image_np = self.augment(image_np)
+        return self.transform(image_np), int(target)
+
+
 class TorchvisionCifarTestDataset(Dataset):
     """Официальный test split CIFAR-10 (10k, с метками) — Kaggle test без labels."""
 
@@ -115,6 +147,12 @@ def build_dataloaders(
     augment_train: Callable[[np.ndarray], np.ndarray] | None,
     download_test: bool = True,
 ) -> tuple[DataLoader, DataLoader, DataLoader]:
+    data_source = str(cfg.get("data_source", "kaggle")).lower()
+    if data_source == "torchvision":
+        return _build_dataloaders_torchvision(cfg, augment_train, download=download_test)
+    if data_source != "kaggle":
+        raise ValueError(f"Unknown data_source: {data_source!r} (use kaggle or torchvision)")
+
     seed = int(cfg["seed"])
     batch_size = int(cfg["batch_size"])
     val_size = int(cfg["val_size"])
@@ -140,6 +178,47 @@ def build_dataloaders(
         transform=transform,
         download=download_test,
     )
+
+    loader_kwargs = {
+        "batch_size": batch_size,
+        "num_workers": 0,
+        "pin_memory": False,
+    }
+    train_loader = DataLoader(train_ds, shuffle=True, **loader_kwargs)
+    val_loader = DataLoader(val_ds, shuffle=False, **loader_kwargs)
+    test_loader = DataLoader(test_ds, shuffle=False, **loader_kwargs)
+    return train_loader, val_loader, test_loader
+
+
+def _build_dataloaders_torchvision(
+    cfg: dict,
+    augment_train: Callable[[np.ndarray], np.ndarray] | None,
+    download: bool = True,
+) -> tuple[DataLoader, DataLoader, DataLoader]:
+    seed = int(cfg["seed"])
+    batch_size = int(cfg["batch_size"])
+    val_size = int(cfg["val_size"])
+    root = cfg["torchvision_data_root"]
+
+    mean = cfg["normalize"]["mean"]
+    std = cfg["normalize"]["std"]
+    transform = make_tensor_transform(mean, std, flatten=True)
+
+    probe = tv_datasets.CIFAR10(root=str(root), train=True, download=download)
+    targets = np.array(probe.targets)
+    indices = np.arange(len(probe))
+    train_idx, val_idx = train_test_split(
+        indices,
+        test_size=val_size,
+        random_state=seed,
+        stratify=targets,
+    )
+
+    train_ds = TorchvisionCifarTrainSubset(
+        root, train_idx, transform=transform, augment=augment_train, download=download
+    )
+    val_ds = TorchvisionCifarTrainSubset(root, val_idx, transform=transform, augment=None, download=False)
+    test_ds = TorchvisionCifarTestDataset(root, transform=transform, download=download)
 
     loader_kwargs = {
         "batch_size": batch_size,

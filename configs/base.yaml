@@ -1,4 +1,6 @@
 seed: 42
+# kaggle — trainLabels.csv + PNG; torchvision — всё качается в torchvision_data_root (~170 MB, удобно для Colab)
+data_source: kaggle
 data_root: ./cifar-10
 torchvision_data_root: ./data/torchvision_cifar10
 val_size: 5000
