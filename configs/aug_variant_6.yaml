@@ -1,0 +1,8 @@
+aug_table_id: 6
+run_name: aug_table_6
+description: "Brightness + Contrast"
+
+augment:
+  brightness_limit: 0.2
+  contrast_limit: 0.2
+  brightness_contrast_p: 0.8

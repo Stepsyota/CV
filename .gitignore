@@ -1,0 +1,24 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+mlruns/
+checkpoints/
+artifacts/
+reports/figures/
+
+# Данные и архивы (копируйте на ноут отдельно, не через git)
+cifar-10/
+data/
+*.7z
+*.tar.gz
+
+*.png
+
+.DS_Store
+Thumbs.db
+
+*.pdf

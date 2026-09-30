@@ -1,0 +1,9 @@
+aug_table_id: 7
+run_name: aug_table_7
+description: "Noise + Blur"
+
+augment:
+  noise_std_range: [0.05, 0.15]
+  noise_p: 0.5
+  blur_limit: 3
+  blur_p: 0.3

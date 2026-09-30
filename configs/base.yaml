@@ -1,0 +1,28 @@
+seed: 42
+data_root: ./cifar-10
+torchvision_data_root: ./data/torchvision_cifar10
+val_size: 5000
+batch_size: 128
+epochs: 80
+lr: 0.001
+weight_decay: 0.0001
+optimizer: adamw
+early_stopping:
+  patience: 12
+  min_delta: 0.001
+  monitor: val_accuracy
+checkpoint_dir: ./checkpoints
+max_params: 1000000
+
+mlflow:
+  experiment_name: lab3-cifar10-mlp
+  tracking_uri: http://127.0.0.1:5000
+
+model:
+  hidden_dims: [256, 128, 64]
+  activation: relu
+  dropout: 0.25
+
+normalize:
+  mean: [0.4914, 0.4822, 0.4465]
+  std: [0.2470, 0.2435, 0.2616]
