@@ -118,22 +118,29 @@ uv run python scripts/train.py --config configs/aug_variant_2.yaml --download-te
 
 ## 6. MLflow (опционально)
 
-В отдельном терминале:
+По умолчанию обучение пишет метрики в **`./mlruns`** в корне репозитория (`tracking_uri: file` в `configs/base.yaml`). Сервер UI должен смотреть **в тот же каталог**.
+
+**1. Обучение** (сервер можно не запускать):
 
 ```powershell
-cd C:\Users\steps\Projects\CV
-$env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
-uv run mlflow server --host 127.0.0.1 --port 5000
-```
-
-Перед обучением:
-
-```powershell
-$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 uv run python scripts/train.py --config configs/aug_variant_2.yaml --download-test
 ```
 
-UI: http://127.0.0.1:5000. Каталог `mlruns/` не коммитится.
+В консоли будет строка `MLflow: file:///.../mlruns`.
+
+**2. UI** — в отдельном терминале:
+
+```powershell
+.\scripts\mlflow_server.ps1
+```
+
+Откройте http://127.0.0.1:5000 → эксперимент **`lab3-cifar10-mlp`** → run `aug_table_*`.  
+Метрики: `train_accuracy`, `val_accuracy`, `test_accuracy`, `best_test_accuracy`, `learning_rate`.  
+Артефакты: `plots/`, `checkpoints/`, `config/`.
+
+Если UI пустой: вы запускали `mlflow server` **без** `mlflow_server.ps1` из другой папки — данные оказались в чужом `mlruns`. Используйте только скрипт выше или смотрите путь из вывода train.
+
+Режим HTTP (`MLFLOW_TRACKING_URI=http://127.0.0.1:5000`) — только вместе с `mlflow_server.ps1`.
 
 На ноутбуке для длинных прогонов удобнее `--no-mlflow`; метрики остаются в `checkpoints/*/history.json`.
 

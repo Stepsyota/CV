@@ -26,10 +26,13 @@ Kaggle-папка `cifar-10/test/` без меток для обучения н�
 
 ## MLflow
 
+Метрики пишутся в `./mlruns` при обучении. UI:
+
 ```powershell
-uv run mlflow server --host 0.0.0.0 --port 5000
-$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+.\scripts\mlflow_server.ps1
 ```
+
+Откройте http://127.0.0.1:5000, эксперимент `lab3-cifar10-mlp`.
 
 ## Команды
 

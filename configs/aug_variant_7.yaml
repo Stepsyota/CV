@@ -3,7 +3,7 @@ run_name: aug_table_7
 description: "Noise + Blur"
 
 augment:
-  noise_std_range: [0.05, 0.15]
-  noise_p: 0.5
+  noise_std_range: [0.03, 0.08]
+  noise_p: 0.4
   blur_limit: 3
-  blur_p: 0.3
+  blur_p: 0.2

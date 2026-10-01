@@ -37,10 +37,9 @@ class MLP(nn.Module):
         super().__init__()
         layers: list[nn.Module] = []
         prev = input_dim
-        act = _activation(activation)
         for hidden in hidden_dims:
             layers.append(nn.Linear(prev, hidden))
-            layers.append(act)
+            layers.append(_activation(activation))
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
             prev = hidden
@@ -60,6 +59,14 @@ class MLP(nn.Module):
         return " – ".join(parts)
 
 
+def init_linear_weights(model: nn.Module) -> None:
+    for module in model.modules():
+        if isinstance(module, nn.Linear):
+            nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
+
+
 def build_model(cfg: dict) -> MLP:
     model_cfg = cfg["model"]
     model = MLP(
@@ -71,4 +78,6 @@ def build_model(cfg: dict) -> MLP:
     n_params = count_trainable_parameters(model)
     if n_params > max_params:
         raise ValueError(f"Модель имеет {n_params} параметров, лимит {max_params}")
+    if model_cfg.get("init_weights", True):
+        init_linear_weights(model)
     return model

@@ -179,15 +179,20 @@ def build_dataloaders(
         download=download_test,
     )
 
-    loader_kwargs = {
-        "batch_size": batch_size,
-        "num_workers": 0,
-        "pin_memory": False,
-    }
+    loader_kwargs = _loader_kwargs(cfg, batch_size)
     train_loader = DataLoader(train_ds, shuffle=True, **loader_kwargs)
     val_loader = DataLoader(val_ds, shuffle=False, **loader_kwargs)
     test_loader = DataLoader(test_ds, shuffle=False, **loader_kwargs)
     return train_loader, val_loader, test_loader
+
+
+def _loader_kwargs(cfg: dict, batch_size: int) -> dict:
+    pin = bool(cfg.get("pin_memory", torch.cuda.is_available()))
+    return {
+        "batch_size": batch_size,
+        "num_workers": int(cfg.get("num_workers", 0)),
+        "pin_memory": pin,
+    }
 
 
 def _build_dataloaders_torchvision(
@@ -220,11 +225,7 @@ def _build_dataloaders_torchvision(
     val_ds = TorchvisionCifarTrainSubset(root, val_idx, transform=transform, augment=None, download=False)
     test_ds = TorchvisionCifarTestDataset(root, transform=transform, download=download)
 
-    loader_kwargs = {
-        "batch_size": batch_size,
-        "num_workers": 0,
-        "pin_memory": False,
-    }
+    loader_kwargs = _loader_kwargs(cfg, batch_size)
     train_loader = DataLoader(train_ds, shuffle=True, **loader_kwargs)
     val_loader = DataLoader(val_ds, shuffle=False, **loader_kwargs)
     test_loader = DataLoader(test_ds, shuffle=False, **loader_kwargs)

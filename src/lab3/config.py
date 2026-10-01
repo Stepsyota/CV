@@ -35,6 +35,8 @@ def load_config(config_path: str | Path, base_path: str | Path | None = None) ->
 
     if env_root := os.environ.get("CIFAR10_DATA_ROOT"):
         cfg["data_root"] = env_root
+    if "mlflow" not in cfg or not isinstance(cfg["mlflow"], dict):
+        cfg["mlflow"] = {}
     if env_mlflow := os.environ.get("MLFLOW_TRACKING_URI"):
         cfg["mlflow"]["tracking_uri"] = env_mlflow
 
