@@ -22,6 +22,28 @@ from lab3.mlflow_utils import log_config_params, log_epoch_metrics, setup_mlflow
 from lab3.model import build_model, count_trainable_parameters
 
 
+def _build_scheduler(
+    optimizer: torch.optim.Optimizer, cfg: dict[str, Any]
+) -> torch.optim.lr_scheduler.LRScheduler | None:
+    sch_cfg = cfg.get("scheduler") or {}
+    name = str(sch_cfg.get("name", "none")).lower()
+    if name in {"", "none"}:
+        return None
+    if name == "cosine":
+        t_max = int(sch_cfg.get("T_max", cfg["epochs"]))
+        eta_min = float(sch_cfg.get("eta_min", 1e-6))
+        return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max, eta_min=eta_min)
+    if name == "plateau":
+        return torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode="max",
+            factor=float(sch_cfg.get("factor", 0.5)),
+            patience=int(sch_cfg.get("patience", 5)),
+            min_lr=float(sch_cfg.get("min_lr", 1e-6)),
+        )
+    raise ValueError(f"Unknown scheduler: {name}")
+
+
 def _build_optimizer(model: nn.Module, cfg: dict[str, Any]) -> torch.optim.Optimizer:
     name = str(cfg.get("optimizer", "adamw")).lower()
     lr = float(cfg["lr"])
@@ -97,6 +119,7 @@ def run_training(cfg: dict[str, Any], use_mlflow: bool = True, download_test: bo
     model = build_model(cfg).to(device)
     num_params = count_trainable_parameters(model)
     optimizer = _build_optimizer(model, cfg)
+    scheduler = _build_scheduler(optimizer, cfg)
     criterion = nn.CrossEntropyLoss()
 
     run_name = cfg.get("run_name", f"aug_table_{aug_id}")
@@ -176,6 +199,13 @@ def run_training(cfg: dict[str, Any], use_mlflow: bool = True, download_test: bo
                 log_epoch_metrics(
                     epoch, train_loss, train_acc, val_loss, val_acc, test_loss, test_acc, best_test_acc
                 )
+
+            if scheduler is not None:
+                if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                    metric = val_acc if monitor == "val_accuracy" else test_acc
+                    scheduler.step(metric)
+                else:
+                    scheduler.step()
 
             if epochs_without_improve >= patience:
                 print(f"Early stopping on epoch {epoch} (monitor={monitor}).")

@@ -3,6 +3,7 @@ run_name: aug_table_2
 description: "Cropping + Flipping"
 
 augment:
+  pad_pixels: 4
   crop_height: 32
   crop_width: 32
   horizontal_flip_p: 0.5

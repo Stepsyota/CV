@@ -11,12 +11,34 @@ from lab3.config import load_config
 from lab3.model import MLP, count_trainable_parameters
 
 
+def _resolve_checkpoint_root(repo: Path, configured: Path) -> Path:
+    """Colab zip часто распаковывает как checkpoints/checkpoints/aug_table_*."""
+    configured = configured if configured.is_absolute() else (repo / configured)
+    for candidate in (configured, configured / "checkpoints"):
+        if any((candidate / f"aug_table_{i}").is_dir() for i in (2, 6, 7)):
+            return candidate
+    return configured
+
+
 def _read_summary(checkpoint_root: Path, run_name: str) -> dict | None:
-    path = checkpoint_root / run_name / "summary.json"
-    if not path.is_file():
+    run_dir = checkpoint_root / run_name
+    summary_path = run_dir / "summary.json"
+    if summary_path.is_file():
+        with summary_path.open(encoding="utf-8") as f:
+            return json.load(f)
+    history_path = run_dir / "history.json"
+    if not history_path.is_file():
         return None
-    with path.open(encoding="utf-8") as f:
-        return json.load(f)
+    with history_path.open(encoding="utf-8") as f:
+        history = json.load(f)
+    if not history:
+        return None
+    best_test = max(float(row["test_accuracy"]) for row in history)
+    return {
+        "run_name": run_name,
+        "best_test_accuracy": best_test,
+        "history_path": str(history_path),
+    }
 
 
 def main() -> None:
@@ -27,7 +49,7 @@ def main() -> None:
 
     cfg = load_config(args.config)
     repo = Path(cfg["_repo_root"])
-    checkpoint_root = Path(cfg["checkpoint_dir"])
+    checkpoint_root = _resolve_checkpoint_root(repo, Path(cfg["checkpoint_dir"]))
     figures_dir = args.out.parent / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
 
@@ -74,24 +96,22 @@ def main() -> None:
         lines.append(f"| {aug_id} | {describe_augment_variant(aug_id)} | `{run_name}` |")
 
     lines.extend(["", "## Результаты", "", "| Вариант | Best test accuracy |", "|---|---:|"])
-    best_overall = ("—", -1.0)
+    best_overall: tuple[str, float] | None = None
     for aug_id, run_name, best in results:
         val = f"{best:.4f}" if best is not None else "нет прогона"
         lines.append(f"| #{aug_id} (`{run_name}`) | {val} |")
-        if best is not None and best > best_overall[1]:
+        if best is not None and (best_overall is None or best > best_overall[1]):
             best_overall = (f"#{aug_id}", best)
 
-    lines.extend(
-        [
-            "",
-            f"**Лучший вариант:** {best_overall[0]} (test accuracy {best_overall[1]:.4f})."
-            if best_overall[1] >= 0
-            else "",
-            "",
-            "## Примеры аугментаций",
-            "",
-        ]
-    )
+    lines.append("")
+    if best_overall is not None:
+        lines.append(f"**Лучший вариант:** {best_overall[0]} (test accuracy {best_overall[1]:.4f}).")
+    else:
+        lines.append(
+            "_Нет данных прогонов. Ожидается `checkpoints/aug_table_*/summary.json` "
+            "(или вложенная папка `checkpoints/checkpoints/` после Colab)._"
+        )
+    lines.extend(["", "## Примеры аугментаций", ""])
 
     demo_root = repo / "artifacts" / "preprocess_demo"
     for aug_id, _, _ in results:

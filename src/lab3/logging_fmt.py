@@ -24,6 +24,9 @@ def print_hyperparameters(cfg: dict[str, Any], num_params: int) -> None:
     print(f"Weight decay: {cfg.get('weight_decay', 0)}")
     print(f"Trainable parameters: {num_params}")
     print(f"Aug table id: {cfg.get('aug_table_id')}")
+    sch = cfg.get("scheduler") or {}
+    if sch.get("name") and str(sch.get("name")).lower() not in {"", "none"}:
+        print(f"LR scheduler: {sch.get('name')}")
     es = cfg.get("early_stopping", {})
     if es:
         print(

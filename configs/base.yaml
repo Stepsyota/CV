@@ -5,12 +5,15 @@ data_root: ./cifar-10
 torchvision_data_root: ./data/torchvision_cifar10
 val_size: 5000
 batch_size: 128
-epochs: 80
+epochs: 120
 lr: 0.001
 weight_decay: 0.0001
 optimizer: adamw
+scheduler:
+  name: cosine
+  eta_min: 1.0e-5
 early_stopping:
-  patience: 12
+  patience: 20
   min_delta: 0.001
   monitor: val_accuracy
 checkpoint_dir: ./checkpoints
@@ -21,9 +24,9 @@ mlflow:
   tracking_uri: http://127.0.0.1:5000
 
 model:
-  hidden_dims: [256, 128, 64]
+  hidden_dims: [288, 256, 128]
   activation: relu
-  dropout: 0.25
+  dropout: 0.15
 
 normalize:
   mean: [0.4914, 0.4822, 0.4465]
