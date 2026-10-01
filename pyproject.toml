@@ -33,3 +33,18 @@ include = ["src/lab3", "configs"]
 
 [tool.uv]
 package = true
+
+# Windows/Linux: CUDA wheels с download.pytorch.org (не CPU-only с PyPI).
+# macOS: torch остаётся с PyPI. Другой CUDA: https://docs.astral.sh/uv/guides/integration/pytorch/
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+    { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

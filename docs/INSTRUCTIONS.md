@@ -217,10 +217,14 @@ Compress-Archive -Path checkpoints, artifacts -DestinationPath $env:USERPROFILE\
 
 ## 9. NVIDIA GPU (RTX)
 
-1. Установите свежий драйвер NVIDIA.
-2. После `uv sync` проверьте CUDA (см. раздел 2).
-3. Если `cuda False`, установите PyTorch с CUDA под вашу версию: https://pytorch.org/get-started/locally/  
-   Дальше подстройте зависимость в `pyproject.toml` / команду `uv pip install` по инструкции PyTorch (часто отдельный index `cu124` и т.п.).
+1. Установите свежий драйвер NVIDIA. В PowerShell: `nvidia-smi` — должна показаться видеокарта, не «команда не найдена».
+2. После `uv sync` проверьте CUDA (см. раздел 2). Версия torch **не** должна заканчиваться на `+cpu`.
+3. В репозитории для Windows/Linux в `pyproject.toml` указан индекс **cu128**. Если `cuda False`, но `nvidia-smi` работает:
+   - убедитесь, что проверяете **тот же** Python: `uv run python -c "..."`, не системный `python`;
+   - переустановите: `uv sync --reinstall-package torch --reinstall-package torchvision`;
+   - при старом драйвере смените индекс в `pyproject.toml` на `cu124` / `cu126` (см. [uv + PyTorch](https://docs.astral.sh/uv/guides/integration/pytorch/)).
+
+Обучение **не падает** при `cuda False` — оно молча уходит на CPU (`src/lab3/train.py`), поэтому «ран не работает» чаще значит «очень медленно», а не ошибку.
 
 Обучение автоматически использует `cuda`, если `torch.cuda.is_available()`.
 

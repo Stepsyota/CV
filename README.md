@@ -12,7 +12,10 @@
 cd C:\Users\steps\Projects\CV
 $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
 uv sync
+uv run python -c "import torch; print(torch.__version__, 'cuda', torch.cuda.is_available())"
 ```
+
+На Windows/Linux `uv sync` тянет **CUDA**-сборку torch (`cu128`). Если в версии есть `+cpu` или `cuda False` — на машине нет драйвера NVIDIA / нет дискретной GPU, либо нужен другой индекс CUDA (см. [INSTRUCTIONS.md](docs/INSTRUCTIONS.md) §9).
 
 ## Данные
 
