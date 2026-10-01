@@ -6,7 +6,7 @@ torchvision_data_root: ./data/torchvision_cifar10
 val_size: 5000
 batch_size: 256
 epochs: 300
-lr: 0.002
+lr: 0.001
 weight_decay: 0.0005
 optimizer: adamw
 scheduler:
@@ -26,7 +26,7 @@ num_workers: 0
 training:
   label_smoothing: 0.1
   grad_clip_norm: 1.0
-  mixup_alpha: 0.2
+  mixup_alpha: 0.1
 
 mlflow:
   experiment_name: lab3-cifar10-mlp
@@ -34,12 +34,19 @@ mlflow:
   # http://127.0.0.1:5000 — только если сервер запущен тем же скриптом
   tracking_uri: file
 
-# ~996k параметров — почти лимит 1M, 4 скрытых слоя
+# MLP-Mixer ~902k параметров (лимит 1M), только nn.Linear в mixing-блоках
 model:
-  hidden_dims: [288, 224, 144, 80]
-  activation: gelu
-  dropout: 0.2
+  type: mlp_mixer
+  patch_size: 4
+  dim: 128
+  depth: 12
+  token_mlp_dim: 64
+  channel_mlp_dim: 256
+  dropout: 0.1
   init_weights: true
+  # type: mlp  # классический flatten-MLP (hidden_dims, activation, dropout)
+  # hidden_dims: [288, 224, 144, 80]
+  # activation: gelu
 
 normalize:
   mean: [0.4914, 0.4822, 0.4465]

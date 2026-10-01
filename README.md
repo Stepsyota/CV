@@ -1,6 +1,6 @@
-# CV Lab 3 — CIFAR-10 MLP
+# CV Lab 3 — CIFAR-10 MLP-Mixer
 
-Три эксперимента с аугментациями (таблица **№2**, **№6**, **№7**), MLP ≤ 1M параметров, MLflow, чекпоинты и отчёт.
+Три эксперимента с аугментациями (таблица **№2**, **№6**, **№7**), MLP-Mixer (только `nn.Linear`) ≤ 1M параметров, MLflow, чекпоинты и отчёт.
 
 **Подробная инструкция:** [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) (установка, GPU-ноутбук, Git, отчёт, troubleshooting).  
 **Colab по шагам:** [docs/COLAB_SETUP.md](docs/COLAB_SETUP.md).  
@@ -64,7 +64,7 @@ uv run python scripts/generate_report.py
 
 ## Архитектура по умолчанию
 
-`3072 – 256 (relu) – 128 (relu) – 64 (relu) – 10` (~828k параметров).
+MLP-Mixer: патчи **8×8** (размер 4 px), `dim=128`, `depth=12` (~900k параметров). Классический MLP: `model.type: mlp` в `configs/base.yaml`.
 
 ## Заметки
 

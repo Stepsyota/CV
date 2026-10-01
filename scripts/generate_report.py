@@ -8,7 +8,7 @@ from pathlib import Path
 
 from lab3.augment import describe_augment_variant
 from lab3.config import load_config
-from lab3.model import MLP, count_trainable_parameters
+from lab3.model import build_model, count_trainable_parameters
 
 
 def _resolve_checkpoint_root(repo: Path, configured: Path) -> Path:
@@ -59,20 +59,16 @@ def main() -> None:
         (7, "configs/aug_variant_7.yaml"),
     ]
 
-    model = MLP(
-        hidden_dims=cfg["model"]["hidden_dims"],
-        activation=cfg["model"].get("activation", "relu"),
-        dropout=float(cfg["model"].get("dropout", 0)),
-    )
+    model = build_model(cfg)
     num_params = count_trainable_parameters(model)
 
     lines: list[str] = [
-        "# Лабораторная работа №3 — CIFAR-10 MLP",
+        "# Лабораторная работа №3 — CIFAR-10 MLP-Mixer",
         "",
         f"Дата отчёта: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "",
         "## Цель",
-        "Обучение MLP на CIFAR-10 с динамической предобработкой обучающей выборки, "
+        "Обучение MLP-Mixer на CIFAR-10 с динамической предобработкой обучающей выборки, "
         "сравнение трёх пар методов из таблицы 1, трекинг в MLflow.",
         "",
         "## Ограничения",
@@ -150,7 +146,7 @@ def main() -> None:
             "",
             "## Вывод",
             "Сравните устойчивость вариантов по val/test и выберите лучший по `best_test_accuracy`. "
-            "Для MLP без свёрток целевые ~95% на CIFAR-10 обычно недостижимы; фиксируйте достигнутый максимум.",
+            "Для линейных моделей без CNN целевые ~95% на CIFAR-10 недостижимы; фиксируйте достигнутый максимум.",
         ]
     )
 
